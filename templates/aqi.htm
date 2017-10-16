@@ -1,0 +1,20 @@
+<div class="row">
+    <div class="col-md-6 col-md-offset-3" ng-show="locationService.location !== ''">
+        <div class="form-group row">
+            Here is your Air Quality Rating for: <h1 class="font-weight-bold row">{{ locationService.location }}</h1>
+        </div>
+        <hr>
+        <div class="row">
+            <h1>
+                Rating: {{ aqiResult.breezometer_description }}
+            </h1>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-md-offset-3">
+        <div class="form-group row" ng-show="locationService.location === ''">
+            <h2>There seems to have been a problem. No location entered.</h2>
+            <a href="#/" class="btn btn-primary row center-block" >Go Back</a>
+        </div>
+    </div>
+</div>
