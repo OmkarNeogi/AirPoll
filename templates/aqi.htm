@@ -1,13 +1,18 @@
-<div class="row">
+<div class="container">
     <div class="col-md-6 col-md-offset-3" ng-show="locationService.location !== ''">
-        <div class="form-group row">
-            Here is your Air Quality Rating for: <h1 class="font-weight-bold row">{{ locationService.location }}</h1>
+        <div ng-hide="aqiResult.status !== 200">
+            <div class="form-group row">
+                Here is the Air Quality Rating for: <h2 class="font-weight-bold row">{{ locationService.location }}</h2>
+            </div>
+            <hr>
+            <div class="row container-fluid" ng-repeat="(key, value) in aqiResult.result">
+                <h4>{{ key }}:</h4>
+                <h1>{{ value }}</h1>
+            </div>
         </div>
-        <hr>
-        <div class="row">
-            <h1>
-                Rating: {{ aqiResult.breezometer_description }}
-            </h1>
+
+        <div class="form-group row" ng-show="aqiResult.status < 200 || aqiResult.status > 200">
+            We are facing problems with the weather server. Sorry!
         </div>
     </div>
 

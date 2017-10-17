@@ -6,31 +6,91 @@ weatherApp.config(function ($routeProvider) {
 
     $routeProvider
         .when('/', {
-            templateUrl: 'templates/home.htm',
+            templateUrl: './templates/home.htm',
             controller: 'homeController'
         })
         .when('/aqi', {
-            templateUrl: 'templates/aqi.htm',
+            templateUrl: './templates/aqi.htm',
             controller: 'aqiController'
         })
 });
 
 //Controllers
-weatherApp.controller('aqiController', ['$scope', '$resource', 'locationService', function($scope, $resource, locationService) {
+weatherApp.controller('aqiController', ['$scope', '$resource', 'locationService', '$http', function($scope, $resource, locationService, $http) {
     $scope.locationService = locationService;
-    // https://api.breezometer.com/baqi/?key=4f8fe524bbc442be8a76df20ec460530&lat=40.7324296&lon=-73.9977264&fields=breezometer_description
-    var query_string = 'https://api.breezometer.com/baqi/?';
-    $scope.aqiAPI = $resource(query_string, {callback: "JSON_CALLBACK"}, {get: {method: "JSON"}});
-    console.log('asd');
-    console.log(locationService.lat, locationService.lon);
-    $scope.aqiResult = $scope.aqiAPI.get({
-        lat: locationService.lat,
-        lon: locationService.lon,
-        fields: 'breezometer_description',
-        key: '4f8fe524bbc442be8a76df20ec460530',
-    });
 
-    console.log($scope.aqiResult);
+    if (locationService.location !== '') {
+        var interpretation_dict = function(aqi) {
+            var result;
+            switch (true){
+                case (aqi<=50):
+                    result = {
+                        'Rating':aqi,
+                        'Level': 'Good',
+                        'Health Implication': 'Air quality is considered satisfactory, and air pollution poses little or no risk.'
+                    }
+                    break;
+                case (aqi<=100):
+                    result = {
+                        'Rating':aqi,
+                        'Level': 'Moderate',
+                        'Health Implication': 'Air quality is acceptable; however, for some pollutants there may be a moderate health concern for a very small number of people who are unusually sensitive to air pollution.'
+                    }
+                    break;
+                case (aqi<=150):
+                    result = {
+                        'Rating':aqi,
+                        'Level': 'Unhealthy for Sensitive Groups',
+                        'Health Implication': 'Members of sensitive groups may experience health effects. The general public is not likely to be affected.'
+                    }
+                    break;
+                case (aqi<=200):
+                    result = {
+                        'Rating':aqi,
+                        'Level': 'Unhealthy',
+                        'Health Implication': 'Everyone may begin to experience health effects; members of sensitive groups may experience more serious health effects.'
+                    }
+                    break;
+                case (aqi<=300):
+                    result = {
+                        'Rating':aqi,
+                        'Level': 'Very Unhealthy',
+                        'Health Implication': 'Health warnings of emergency conditions. The entire population is more likely to be affected.'
+                    }
+                    break;
+                case (aqi>300):
+                    result = {
+                        'Rating':aqi,
+                        'Level': 'Hazardous',
+                        'Health Implication': 'Health alert: everyone may experience more serious health effects.'
+                    }
+                    break;
+            }
+            return result;
+        };
+
+        $http({
+            method : "GET",
+            url : "https://api.waqi.info/feed/geo:"+locationService.lat+";"+locationService.lon+"/?token=16e4230ac9315d3be1ea58b6565da8bfb7b77f87"
+        }).then(function mySuccess(response) {
+            console.log(response);
+            console.log(response.data.data.aqi);
+
+            var result = interpretation_dict(response.data.data.aqi);
+            console.log(result);
+            $scope.aqiResult = {
+                'status': response.status,
+                'result': result
+            };
+
+        }, function myError(response) {
+            console.log('aqicontroller error: '+response);
+            $scope.myWelcome = response.statusText;
+        });
+    }
+
+
+
 }]);
 
 weatherApp.controller('homeController', ['$scope', function($scope, locationService) {
